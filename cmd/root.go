@@ -37,7 +37,7 @@ func Execute() {
 func init() {}
 
 func initializeConfig(cmd *cobra.Command) error {
-	viper.SetEnvPrefix("CDE")
+	viper.SetEnvPrefix("BENOIT")
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "*", "-", "*"))
 	viper.AutomaticEnv()
 
