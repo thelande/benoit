@@ -1,0 +1,48 @@
+metadata:
+  id: cluster-diagnostics-v1
+  description: Basic cluster and node health checks
+  start: ping_talos01
+
+targets:
+  - id: local
+    kind: local
+    env:
+      KUBECONFIG: $HOME/homelab-v2/kubeconfig-homelab-single
+
+  - id: prod-k8s
+    kind: kubernetes
+    kubeconfig: $HOME/.kube/config
+    context: default
+
+  - id: talos01
+    kind: ssh
+    host: 192.168.2.100
+    user: ubuntu
+    keyFile: ~/.ssh/id_ed25519
+
+checks:
+  - id: ping_talos01
+    target: talos01
+    command: [ping, -q, -c1, -W1, "{{ .Target.Host }}"]
+    run_local: true
+    timeout: 5s
+    hide_stdout: true
+    on_success: [check_kube_nodes]
+
+  - id: check_kube_nodes
+    target: local
+    command: ["ChkK8sNodes.sh"]
+    on_success: [check_cluster_pods]
+
+  - id: check_cluster_pods
+    target: local
+    command: ["ChkPods.sh"]
+    on_failure: [log_bad_pods, log_all_resources]
+
+  - id: log_bad_pods
+    target: local
+    command: ["LogBadPods.sh"]
+
+  - id: log_all_resources
+    target: local
+    command: ["LogAllResources.sh"]
